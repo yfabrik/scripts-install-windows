@@ -57,3 +57,13 @@ copy /y Y:\scripts\external\autounattend.xml W:\windows\system32\sysprep\unatten
 
 et apres c'est les memes scripts que sur SPACE
 faut juste les mettre au bons endroits
+
+nouvelle façon:
+on peut utiliser le install.bat qu'on rename en startnet.cmd dans le install.ipxe
+
+```
+:bureau
+initrd --name startnet.cmd ${scripts}/startnet-bureau.cmd startnet.cmd
+goto massdriver
+
+```
