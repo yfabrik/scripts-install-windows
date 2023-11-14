@@ -1,21 +1,24 @@
 # scripts pour auto install windows
 
 ## sur clé usb
-installer ventoy en laissant un espace (18GO mini)  
-formatter l'espace en exFAT le nommer SPACE  
-on a 3 partition: SPACE, VENTOY, VENTOYEFI, on touche pas à VENTOYEFI  
-dans SPACE :
--  mettre le repo (```git clone https://github.com/yfabrik/scripts-install-windows```)  
--  les images custom famille.wim/bureau.wim  
+nécéssite une clé de mini 32Go
+télécharger ventoy https://www.ventoy.net/en/index.html  
+avec ventoy creer une clé en laissant un espace (18Go mini)  
+formatter l'espace en exFAT, le nommer SPACE  
+on a 3 partition: SPACE, VENTOY, VENTOYEFI, on touche pas à VENTOYEFI   
+
+dans SPACE mettre:
+-  Ce repository (```git clone https://github.com/yfabrik/scripts-install-windows```)  
+-  les images custom windows famille.wim/bureau.wim  
 
 
-dans VENTOY :
-- les images ISO winPE (1 image winPE (la meme, juste un copie colle avec un nom different) pour chaque image custom, parce que j'ai pas trouvé comment faire autrement)
-- archives .7z (1 pour famille.wim 1, pour bureau.wim) avec arborescence:
+dans VENTOY mettre :
+- une images ISO winPE et la cloner pour chaque installation cutom (1 image pour famille, 1 image pour bureau)
+- créer des archives .7z pour chaque installation custom avec l'arborescence:
 ```
-windows
-  |_ system32
-    |_ startnet.cmd
+windows/
+└── system32/
+    └── startnet.cmd
 
 ```
 contenu du starnet.cmd pour bureau.wim:
@@ -23,8 +26,8 @@ contenu du starnet.cmd pour bureau.wim:
 ::startnet.cmd
 wpeinit
 for %%a in (d e f g h i j k l m n o p q r s t u v w x y z) do @vol %%a: 2>nul |find "SPACE" >nul && set drv=%%a:
-call %drv%\scripts\auto-install.bat %drv%\bureau.wim
-call %drv%\cp-files.bat
+call %drv%\scripts-install-windows\scripts\auto-install.bat %drv%\bureau.wim
+call %drv%\scripts-install-windows\scripts\cp-files.bat
 ```
 
 pour famille.wim:
@@ -32,12 +35,12 @@ pour famille.wim:
 ::startnet.cmd
 wpeinit
 for %%a in (d e f g h i j k l m n o p q r s t u v w x y z) do @vol %%a: 2>nul |find "SPACE" >nul && set drv=%%a:
-call %drv%\scripts\auto-install.bat %drv%\famille.wim
-copy /y %drv%\files\unattend.xml W:\Windows\System32\Sysprep\unattend.xml
+call %drv%\scripts-install-windows\scripts\auto-install.bat %drv%\famille.wim
+copy /y %drv%\scripts-install-windows\files\unattend.xml W:\Windows\System32\Sysprep\unattend.xml
 ```
 
 Ventoy a un plugin pour injecter des fichiers dans l'os choisi  
-lancer ventoyplugson.sh en lui donnant l'emplacement de la clé USB (``sudo ./VentoyPlugson.sh /dev/sdb``)  
+lancer ventoyplugson en lui donnant l'emplacement de la clé USB (``sudo ./VentoyPlugson.sh /dev/sdb``)  
 utiliser le injection plugin et lier le winpe_bureau au bureau.7z et le winpe_famille au famille.7z  
 
 
