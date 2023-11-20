@@ -1,10 +1,18 @@
 # scripts pour auto install windows
-
+script flemmard si sur linux
+```bash
+wget https://raw.githubusercontent.com/yfabrik/scripts-install-windows/main/script-flemmard.sh |bash
+```
 ## sur clé usb
-nécéssite une clé de mini 32Go
-télécharger ventoy https://www.ventoy.net/en/index.html  
-avec ventoy creer une clé en laissant un espace (18Go mini)  
-formatter l'espace en exFAT, le nommer SPACE  
+créer un clé bootable permettant d'installer "automatiquement" 
+
+nécéssite :
+  -  une clé de mini 32Go  
+  - télécharger ventoy https://www.ventoy.net/en/index.html 
+   
+
+Avec ventoy creer une clé en laissant un espace (18Go mini)  
+formatter l'espace laissé à la fin de la clé USB en exFAT, le nommer SPACE  
 on a 3 partition: SPACE, VENTOY, VENTOYEFI, on touche pas à VENTOYEFI   
 
 dans SPACE mettre:
