@@ -177,6 +177,7 @@ if [ "$?" != "0" ]; then
 fi
 
 ## creer 3eme partition sur cle usb
+echo "create SPACE"
 sudo fdisk $drive <<EOF
 n
 
@@ -198,7 +199,7 @@ mkdir -p samba_mountdir
 mkdir -p ventoy_mountdir
 sudo mount $drive"3" ./space_mountdir
 sudo mount $drive"1" ./ventoy_mountdir
-sudo mount -t cifs samba_path ./samba_moountdir
+sudo mount -t cifs samba_path ./samba_mountdir
 
 ## install les  truc sur SPACE
 colEcho $cyanB "Mounting SPACE"
@@ -206,17 +207,58 @@ echo "setup SPACE"
 cd ./space_mountdir
 git clone https://github.com/yfabrik/scripts-install-windows
 cd ..
+echo "copy image.wim"
 sudo cp ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
 
 #install les truc sur ventoy
 echo "setup ventoy"
+echo "setup injection"
+mkdir -p ventoy_mountdir/windows/system32
 
-##TODO winpe ISO
-# sudo cp ./samba_mountdir/disks/winPE.iso
-# sudo cp winpe.iso famille.iso
-# sudo cp winpe.iso bureau.iso
+echo "create injection bureau"
+cat > ventoy_mountdir/windows/system32/starnet.cmd << EOF
+::startnet.cmd
+wpeinit
+for %%a in (d e f g h i j k l m n o p q r s t u v w x y z) do @vol %%a: 2>nul |find "SPACE" >nul && set drv=%%a:
+call %drv%\scripts-install-windows\scripts\auto-install.bat %drv%\bureau.wim
+call %drv%\scripts-install-windows\scripts\cp-files.bat
+EOF
+sudo 7z a ventoy_mountdir/inject_bureau.7z windows/
 
-#copy le ventoy script
+echo "create injection famille"
+cat > ventoy_mountdir/windows/system32/starnet.cmd << EOF
+::startnet.cmd
+wpeinit
+for %%a in (d e f g h i j k l m n o p q r s t u v w x y z) do @vol %%a: 2>nul |find "SPACE" >nul && set drv=%%a:
+call %drv%\scripts-install-windows\scripts\auto-install.bat %drv%\famille.wim
+copy /y %drv%\scripts-install-windows\files\unattend.xml W:\Windows\System32\Sysprep\unattend.xml
+EOF
+sudo 7z a ventoy_mountdir/inject_famille.7z windows/
+
+rm -r ./windows/
+
+echo "create ventoy plugin config"
+sudo mkdir -p ventoy_mountdir/ventoy
+cat > ./ventoy.json << EOF
+{
+    "injection":[
+        {
+            "image": "/WinPE_famille.iso",
+            "archive": "/inject_famille.7z"
+        },
+        {
+            "image": "/WinPE_Bureau.iso",
+            "archive": "/inject_bureau.7z"
+        }
+    ]
+}
+EOF
+sudo mv ventoy.json ventoy_mountdir/ventoy/
+echo "add winpe"
+sudo cp ./samba_mountdir/disks/winPE/WinPE_amd64_massdriver.iso ./ventoy_mountdir/WinPE_famille.iso
+echo "clone winpe"
+sudo cp ./ventoy_mountdir/WinPE_famille.iso ./ventoy_mountdir/WinPE_bureau.iso
+
 
 # clean
 echo "unmounting directory"
