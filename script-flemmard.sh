@@ -178,20 +178,21 @@ fi
 
 ## creer 3eme partition sur cle usb
 echo "create SPACE"
+sleep 5
 sudo fdisk $drive <<EOF
 n
 
 
 
-y
 w
 EOF
-mkfs.exfat $drive"3" -L "SPACE"
+sleep 5
+sudo mkfs.exfat $drive"3" -L "SPACE"
 
 colEcho $cyanB "Unmounting drive$whiteB $drive"
 sudo umount $drive
 
-samba_path=/srvpxe/install/
+samba_path="//192.168.1.250/install/"
 
 echo "mounting directory"
 mkdir -p space_mountdir
@@ -199,13 +200,13 @@ mkdir -p samba_mountdir
 mkdir -p ventoy_mountdir
 sudo mount $drive"3" ./space_mountdir
 sudo mount $drive"1" ./ventoy_mountdir
-sudo mount -t cifs samba_path ./samba_mountdir
+sudo mount -t cifs $samba_path ./samba_mountdir -o guest
 
 ## install les  truc sur SPACE
 colEcho $cyanB "Mounting SPACE"
 echo "setup SPACE"
 cd ./space_mountdir
-git clone https://github.com/yfabrik/scripts-install-windows
+sudo git clone https://github.com/yfabrik/scripts-install-windows
 cd ..
 echo "copy image.wim"
 sudo cp ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
@@ -213,10 +214,10 @@ sudo cp ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
 #install les truc sur ventoy
 echo "setup ventoy"
 echo "setup injection"
-mkdir -p ventoy_mountdir/windows/system32
+mkdir -p windows/system32
 
 echo "create injection bureau"
-cat > ventoy_mountdir/windows/system32/starnet.cmd << EOF
+cat > windows/system32/starnet.cmd << EOF
 ::startnet.cmd
 wpeinit
 for %%a in (d e f g h i j k l m n o p q r s t u v w x y z) do @vol %%a: 2>nul |find "SPACE" >nul && set drv=%%a:
@@ -226,7 +227,7 @@ EOF
 sudo 7z a ventoy_mountdir/inject_bureau.7z windows/
 
 echo "create injection famille"
-cat > ventoy_mountdir/windows/system32/starnet.cmd << EOF
+cat > windows/system32/starnet.cmd << EOF
 ::startnet.cmd
 wpeinit
 for %%a in (d e f g h i j k l m n o p q r s t u v w x y z) do @vol %%a: 2>nul |find "SPACE" >nul && set drv=%%a:
@@ -235,11 +236,10 @@ copy /y %drv%\scripts-install-windows\files\unattend.xml W:\Windows\System32\Sys
 EOF
 sudo 7z a ventoy_mountdir/inject_famille.7z windows/
 
-rm -r ./windows/
+sudo rm -r ./windows/
 
 echo "create ventoy plugin config"
-sudo mkdir -p ventoy_mountdir/ventoy
-cat > ./ventoy.json << EOF
+cat > ventoy.json << EOF
 {
     "injection":[
         {
@@ -253,6 +253,7 @@ cat > ./ventoy.json << EOF
     ]
 }
 EOF
+mkdir -p ventoy_mountdir/ventoy
 sudo mv ventoy.json ventoy_mountdir/ventoy/
 echo "add winpe"
 sudo cp ./samba_mountdir/disks/winPE/WinPE_amd64_massdriver.iso ./ventoy_mountdir/WinPE_famille.iso
@@ -262,8 +263,8 @@ sudo cp ./ventoy_mountdir/WinPE_famille.iso ./ventoy_mountdir/WinPE_bureau.iso
 
 # clean
 echo "unmounting directory"
-sudo mount ./space_mountdir
-sudo mount ./ventoy_mountdir
-sudo mount ./samba_moountdir
-rm -r {space_,sambab_,ventoy_}mountdir
+sudo umount ./space_mountdir
+sudo umount ./ventoy_mountdir
+sudo umount ./samba_moountdir
+sudo rm -r {space_,samba_,ventoy_}mountdir
 
