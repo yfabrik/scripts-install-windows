@@ -1,7 +1,7 @@
 # scripts pour auto install windows
 script flemmard si sur linux
 ```bash
-wget https://raw.githubusercontent.com/yfabrik/scripts-install-windows/main/script-flemmard.sh |bash
+curl https://raw.githubusercontent.com/yfabrik/scripts-install-windows/main/script-flemmard.sh |bash
 ```
 ## sur clé usb
 créer un clé bootable permettant d'installer "automatiquement" 
