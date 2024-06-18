@@ -25,7 +25,7 @@ function colEcho() {
 
 # Function to wait for a user keypress.
 UserWait () {
-    read -n 1 -s -r -p "Press any key to continue"
+    read -n 1 -s -r -p "Press any key to continue" < /dev/tty
     echo -e "\r                         \r"
 }
 
@@ -149,14 +149,14 @@ lsblk --nodeps --output "NAME,SIZE,VENDOR,MODEL,SERIAL" | grep -v loop
 
 colEcho $yellowB "Enter the device for the USB drive NOT INCLUDING /dev/ OR the Number After."
 colEcho $yellowB "for example enter sda or sdb"
-read letter
+read letter < /dev/tty
 
 drive=/dev/$letter
 
 checkingconfirm=""
 
 while [[ "$checkingconfirm" != [NnYy]* ]]; do
-	read -e -p "You want to install Ventoy to $drive ? (Y/N) " checkingconfirm
+	read -e -p "You want to install Ventoy to $drive ? (Y/N) " checkingconfirm < /dev/tty
 	if [[ "$checkingconfirm" == [Nn]* ]]; then
 		colEcho $yellowB "Installation Cancelled."
 		exit
@@ -208,16 +208,17 @@ echo "setup SPACE"
 cd ./space_mountdir
 sudo git clone https://github.com/yfabrik/scripts-install-windows
 cd ..
-echo "copy image.wim"
+colEcho $cyanB "copy image.wim"
 sudo rsync -ah --progress ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
 # sudo cp ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
+#curl FILE://./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim -o ./space_mountdir/ ##need full path ?
 
 #install les truc sur ventoy
-echo "setup ventoy"
-echo "setup injection"
+colEcho $cyanB "setup ventoy"
+colEcho $cyanB "setup injection"
 mkdir -p windows/system32
 
-echo "create injection bureau"
+colEcho $cyanB "create injection bureau"
 cat > windows/system32/starnet.cmd << EOF
 ::startnet.cmd
 wpeinit
@@ -227,7 +228,7 @@ call %drv%\scripts-install-windows\scripts\cp-files.bat
 EOF
 sudo 7z a ventoy_mountdir/inject_bureau.7z windows/
 
-echo "create injection famille"
+colEcho $cyanB "create injection famille"
 cat > windows/system32/starnet.cmd << EOF
 ::startnet.cmd
 wpeinit
@@ -239,7 +240,7 @@ sudo 7z a ventoy_mountdir/inject_famille.7z windows/
 
 sudo rm -r ./windows/
 
-echo "create ventoy plugin config"
+colEcho $cyanB "create ventoy plugin config"
 cat > ventoy.json << EOF
 {
     "injection":[
@@ -254,18 +255,21 @@ cat > ventoy.json << EOF
     ]
 }
 EOF
-mkdir -p ventoy_mountdir/ventoy
+sudo mkdir -p ventoy_mountdir/ventoy
 sudo mv ventoy.json ventoy_mountdir/ventoy/
-echo "add winpe"
-sudo cp ./samba_mountdir/disks/winPE/WinPE_amd64_massdriver.iso ./ventoy_mountdir/WinPE_famille.iso
-echo "clone winpe"
-sudo cp ./ventoy_mountdir/WinPE_famille.iso ./ventoy_mountdir/WinPE_bureau.iso
+colEcho $cyanB "add winpe"
+sudo rsync -ah --progress ./samba_mountdir/disks/winPE/WinPE_amd64_massdriver.iso ./ventoy_mountdir/WinPE_famille.iso
+#sudo cp ./samba_mountdir/disks/winPE/WinPE_amd64_massdriver.iso ./ventoy_mountdir/WinPE_famille.iso
+colEcho $cyanB "clone winpe"
+sudo rsync -ah --progress ./ventoy_mountdir/WinPE_famille.iso ./ventoy_mountdir/WinPE_bureau.iso
+#sudo cp ./ventoy_mountdir/WinPE_famille.iso ./ventoy_mountdir/WinPE_bureau.iso
 
 
 # clean
-echo "unmounting directory"
+colEcho $cyanB "unmounting directory"
 sudo umount ./space_mountdir
 sudo umount ./ventoy_mountdir
-sudo umount ./samba_moountdir
+sudo umount ./samba_mountdir
 sudo rm -r {space_,samba_,ventoy_}mountdir
 
+colEcho $cyanB DONE
