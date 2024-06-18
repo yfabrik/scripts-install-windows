@@ -209,7 +209,8 @@ cd ./space_mountdir
 sudo git clone https://github.com/yfabrik/scripts-install-windows
 cd ..
 echo "copy image.wim"
-sudo cp ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
+sudo rsync -ah --progress ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
+# sudo cp ./samba_mountdir/disks/win.wim.d/{bureau,famille}.wim ./space_mountdir/
 
 #install les truc sur ventoy
 echo "setup ventoy"
